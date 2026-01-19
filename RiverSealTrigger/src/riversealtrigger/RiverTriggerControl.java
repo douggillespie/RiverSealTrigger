@@ -17,6 +17,7 @@ import offlineProcessing.OLProcessDialog;
 import offlineProcessing.OfflineTaskGroup;
 import riversealtrigger.offline.TriggerOfflineTask;
 import riversealtrigger.swing.RiverTriggerDialog;
+import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.track.TrackLinkDataBlock;
 
 public class RiverTriggerControl extends PamControlledUnit implements PamSettings {
@@ -116,6 +117,30 @@ public class RiverTriggerControl extends PamControlledUnit implements PamSetting
 	 */
 	public RiverTriggerProcess getTriggerProcess() {
 		return triggerProcess;
+	}
+	
+	private TritechAcquisition tritechAcquisition;
+	
+	/**
+	 * Get reference to Tritech Acquisition module. Will search if needed, 
+	 * otherwise just return previous value for speed. 
+	 * @return
+	 */
+	public TritechAcquisition getTritechAcquisition() {
+		if (tritechAcquisition == null) {
+			tritechAcquisition = findTritechAcquisition();
+		}
+		return tritechAcquisition;
+	}
+	
+	/**
+	 * Does a full search for the tritech acquisition module. Better to use
+	 * getTritechAcquisition which will remember previous result. 
+	 * @return
+	 */
+	private TritechAcquisition findTritechAcquisition() {
+		TritechAcquisition daq = (TritechAcquisition) PamController.getInstance().findControlledUnit(TritechAcquisition.unitType);
+		return daq;
 	}
 
 }

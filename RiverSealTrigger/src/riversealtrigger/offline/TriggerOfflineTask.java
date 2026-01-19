@@ -117,7 +117,7 @@ public class TriggerOfflineTask extends OfflineTask<TrackLinkDataUnit> {
 //		//		}
 //		Iterator<DetectedRegion> chainIt = regions.iterator();
 //		TrackChain dummyChain = new TrackChain(chainIt.next());
-		TrackLinkDataUnit dummyUnit = new TrackLinkDataUnit(completeUnit.getTimeMilliseconds());
+		TrackLinkDataUnit dummyUnit = new TrackLinkDataUnit(thresholdDetector.getTrackLinkProcess(), completeUnit.getTimeMilliseconds());
 		dummyUnit.setUID(completeUnit.getUID());
 		dummyUnit.setParentDataBlock(completeUnit.getParentDataBlock());
 		dummyUnit.setEmbryonic(true);

@@ -18,6 +18,7 @@ import riversealtrigger.swing.RiverTriggerGraphics;
 import riversealtrigger.swing.RiverTriggerSymbolManager;
 import riversealtrigger.swing.TriggerDisplayProvider;
 import tritechgemini.detect.DetectedRegion;
+import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.track.TrackChain;
 import tritechplugins.detect.track.TrackLinkDataBlock;
@@ -87,17 +88,23 @@ public class RiverTriggerProcess extends PamProcess {
 		
 		RiverTriggerDataUnit currentTrigger = currentTriggers.get(track);
 		DetectedRegion lastPt = track.getTrackChain().getLastRegion();
-		
+
+		double[] xy = {-lastPt.getPeakX(), lastPt.getPeakY()};
+		TritechAcquisition tritechDaq = riverTriggerControl.getTritechAcquisition();
+		if (tritechDaq != null) {
+			xy = tritechDaq.getAbsoluteXY(lastPt);
+		}
 		if (currentTrigger == null) {
 //			System.out.printf("Creating trigger from track UID %d at %s\n", track.getUID(), 
 //					PamCalendar.formatDBDateTime(track.getTimeMilliseconds(),  true));
-			currentTrigger = new RiverTriggerDataUnit(lastPt.getTimeMilliseconds(), -lastPt.getPeakX(), lastPt.getPeakY(), track);
+			// all now needs to be done on absolute coordinates. 
+			currentTrigger = new RiverTriggerDataUnit(lastPt.getTimeMilliseconds(), xy[0], xy[1], track);
 			currentTriggers.put(track, currentTrigger);
 			outputData.addPamData(currentTrigger);
 		}
 		else {
 //			System.out.printf("Extending trigger with track UID %d\n", track.getUID());
-			currentTrigger.setTriggerEnd(lastPt.getTimeMilliseconds(), -lastPt.getPeakX(), lastPt.getPeakY(), track);
+			currentTrigger.setTriggerEnd(lastPt.getTimeMilliseconds(), xy[0], xy[1], track);
 			outputData.updatePamData(currentTrigger, lastPt.getTimeMilliseconds());
 		}
 		// get rid of it if it's not going to update any more. 
@@ -197,6 +204,9 @@ public class RiverTriggerProcess extends PamProcess {
 //		if (track.getUID() == 11000001 && complete) {
 //			System.out.println("Track: " + track.getUID());
 //		}
+		if (complete & track.getUID() == 276000001) {
+			System.out.println("Complete track processing");
+		}
 		RiverTriggerParams trigParams = riverTriggerControl.getTriggerParams();
 		
 		int riverRegion = getRiverRegion(track);
@@ -233,6 +243,7 @@ public class RiverTriggerProcess extends PamProcess {
 			return false;
 		}
 		DetectedRegion lastPoint = trackChain.getLastRegion();
+		
 		int zone = getTriggerZone(lastPoint);
 		if (zone == 0) {
 			// too far downstream to care. 
@@ -255,7 +266,20 @@ public class RiverTriggerProcess extends PamProcess {
 	 * @return zone number: 0, 1, or 2
 	 */
 	private int getTriggerZone(DetectedRegion region) {
-		return getTriggerZone(-region.getPeakX(), region.getPeakY());
+
+		double x = -region.getPeakX();
+		double y = region.getPeakY();
+		// convert that to an absolute coordinate for that sonar. 
+		TritechAcquisition tritechDaq = riverTriggerControl.getTritechAcquisition();
+		if (tritechDaq != null) {
+			double[] absXY = tritechDaq.getAbsoluteXY(region);
+			if (absXY != null) {
+				x = absXY[0];
+				y = absXY[1];
+			}
+		}
+		
+		return getTriggerZone(x, y);
 	}
 
 	/**

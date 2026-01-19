@@ -2,7 +2,10 @@ package riversealtrigger.swing;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -16,7 +19,7 @@ public class TriggerSymbolPanel extends StandardSymbolOptionsPanel {
 
 	private JPanel mainPanel;
 	
-	private JCheckBox showFlow;
+	private JCheckBox showFlow, showBounds, showText;
 	
 	private RiverTriggerSymbolChooser triggerSymbolChooser;
 
@@ -25,12 +28,41 @@ public class TriggerSymbolPanel extends StandardSymbolOptionsPanel {
 		super(standardSymbolManager, triggerSymbolChooser);
 		this.triggerSymbolChooser = triggerSymbolChooser;
 		mainPanel = new JPanel(new BorderLayout());
-		JPanel sPanel = new JPanel(new BorderLayout());
+		JPanel sPanel = new JPanel();
+		sPanel.setLayout(new BoxLayout(sPanel, BoxLayout.Y_AXIS));
 		sPanel.setBorder(new TitledBorder("Additional options"));
-		showFlow = new JCheckBox("Show trigger geometry");
+		showFlow = new JCheckBox("Show flow");
+		showBounds = new JCheckBox("Show boundaries");
+		showText = new JCheckBox("Show labels");
 		sPanel.add(showFlow);
+		sPanel.add(showBounds);
+		sPanel.add(showText);
+		
+		showFlow.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				enableText();
+			}
+		});
+		showBounds.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				enableText();
+			}
+		});
+		
 		mainPanel.add(sPanel, BorderLayout.SOUTH);
 		mainPanel.add(super.getMainPanel(), BorderLayout.CENTER);
+	}
+
+	protected void enableText() {
+		boolean e = showFlow.isSelected() | showBounds.isSelected();
+		showText.setEnabled(e);
+		if (e == false)  {
+			showText.setSelected(false);
+		}
 	}
 
 	@Override
@@ -41,6 +73,8 @@ public class TriggerSymbolPanel extends StandardSymbolOptionsPanel {
 		TriggerSymbolOptions params = (TriggerSymbolOptions) triggerSymbolChooser.getSymbolOptions();
 		super.setParams();
 		showFlow.setSelected(params.drawFlowDirection);
+		showBounds.setSelected(params.drawTriggerboundaries);
+		showText.setSelected(params.showLabels);
 	}
 
 	@Override
@@ -50,6 +84,8 @@ public class TriggerSymbolPanel extends StandardSymbolOptionsPanel {
 		}
 		TriggerSymbolOptions params = (TriggerSymbolOptions) triggerSymbolChooser.getSymbolOptions();
 		params.drawFlowDirection = showFlow.isSelected();
+		params.drawTriggerboundaries = showBounds.isSelected();
+		params.showLabels = showText.isSelected();
 		
 		return super.getParams();
 	}

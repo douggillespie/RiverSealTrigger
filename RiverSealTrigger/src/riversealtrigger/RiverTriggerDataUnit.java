@@ -9,6 +9,8 @@ import PamUtils.time.CalendarControl;
 import PamguardMVC.DataUnitBaseData;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
+import tritechgemini.detect.DetectedRegion;
+import tritechplugins.detect.track.TrackChain;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 
 public class RiverTriggerDataUnit extends PamDataUnit<PamDataUnit, PamDataUnit> implements PamDetection {
@@ -158,6 +160,26 @@ public class RiverTriggerDataUnit extends PamDataUnit<PamDataUnit, PamDataUnit> 
 			catch (NumberFormatException e) {
 			}
 		}
+	}
+	
+	/**
+	 * Does this track use this sonar ? 
+	 * @param sonarId
+	 * @return
+	 */
+	public boolean usesSonar(int sonarId) {
+		if (trackDataUnits == null) {
+			return false;
+		}
+		for (TrackLinkDataUnit tdu : trackDataUnits) {
+			TrackChain trackChain = tdu.getTrackChain();
+			for (DetectedRegion r : trackChain.getRegions()) {
+				if (r.getSonarId() == sonarId) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 
