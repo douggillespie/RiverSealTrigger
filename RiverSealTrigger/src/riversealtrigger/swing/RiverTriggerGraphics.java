@@ -252,67 +252,74 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 		if (tritechDaq == null) {
 			return;
 		}
+
+		LatLong origin = getStreamerOrigin(0, 0);
+		
 		int[] sonarIds = tritechDaq.getSonarIds();
 		double r = 1;
 		double maxAng = 60; // would be good if this was in the parameters. 
 		// need to get the bounds we're drawing in. Do this as a rectangle on the map
-		double x1=0, x2=0, y1=0, y2=0; // for now these are in metres. 
+//		double x1=0, x2=0, y1=0, y2=0; // for now these are in metres. 
+		
+		Area clipPoly = null;
 		for (int i = 0; i < sonarIds.length; i++) {
 			sonarPosition = tritechDaq.getDaqParams().getSonarPosition(sonarIds[i]);
 			SonarDaqParams daqP = tritechDaq.getDaqParams().getSonarParams(sonarIds[i]);
 			r = Math.max(r, daqP.getRange());
 			// now need to get the bounds of that in absolute coordinates. 
-			double aStep = maxAng/5;
-			if (i == 0) {
-				x1 = x2 = sonarPosition.getX();
-				y1 = y2 = sonarPosition.getY();
+			int nAngl = 20;
+			LatLong ll;
+			double[] x = new double[nAngl+2];
+			double[] y = new double[nAngl+2];
+			x[0] = (int) sonarPosition.getX();
+			y[0] = (int) sonarPosition.getY();
+			double da = 2*maxAng/nAngl;
+			for (int ia = 0; ia <= nAngl; ia++) {
+				double aa = Math.toRadians( -maxAng+da*ia + sonarPosition.getHead());
+				x[ia+1] = (int) (sonarPosition.getX() + Math.sin(aa) * r);
+				y[ia+1] = (int) (sonarPosition.getY() + Math.cos(aa) * r);
+			}
+			// convert to latlongs
+			int[] xp = new int[x.length];
+			int[] yp = new int[y.length];
+			for (int ix = 0; ix < x.length; ix++) {
+				ll = origin.addDistanceMeters(x[ix], y[ix]);
+				Coordinate3d screenPos = mapProjector.getCoord3d(ll);
+				xp[ix] = (int) screenPos.x;
+				yp[ix] = (int) screenPos.y;
+			}
+			
+			Polygon p = new Polygon(xp, yp, xp.length);
+			if (clipPoly == null) {
+				clipPoly = new Area(p);
 			}
 			else {
-				x1 = Math.min(x1,  sonarPosition.getX());
-				x2 = Math.max(x2,  sonarPosition.getX());
-				y1 = Math.min(y1,  sonarPosition.getY());
-				y2 = Math.max(y2,  sonarPosition.getY());
+				clipPoly.add(new Area(p));
 			}
-			double a = -maxAng;
-			while (a <= maxAng) {
-				double sa = Math.toRadians(a + sonarPosition.getHead());
-				double x = sonarPosition.getX() + Math.sin(sa) * r;
-				double y = sonarPosition.getY() + Math.cos(sa) * r;
-				x1 = Math.min(x1,  x);
-				x2 = Math.max(x2,  x);
-				y1 = Math.min(y1,  y);
-				y2 = Math.max(y2,  y);
-				a += aStep;
-			}
+			
 		}
+		if (clipPoly == null) {
+			return;
+		}
+//		g2d.draw(clipPoly);
+		Rectangle clipRect = clipPoly.getBounds();
+		g2d.setClip(clipPoly);
 		
-		
-		// get the reference point, which is the position of streamer 0. 
-		LatLong origin = getStreamerOrigin(0, 0);
-		LatLong llTopLeft = origin.addDistanceMeters(x1, y2);
-		LatLong llBotRight = origin.addDistanceMeters(x2, y1);
-		Coordinate3d topLeft = mapProjector.getCoord3d(llTopLeft);
-		Coordinate3d botRight = mapProjector.getCoord3d(llBotRight);
-		Point2D pTL = topLeft.getPoint2D();
-		Point2D pBR = botRight.getPoint2D();
-		
-
-		double lenPixels = Math.max(Math.abs(pBR.getX()-pTL.getX()), Math.abs(pBR.getY()-pTL.getY()));
-		
-		Rectangle rect = new Rectangle((int) pTL.getX(), (int) pTL.getY(), (int) (pBR.getX()-pTL.getX()), (int) ( pBR.getY()-pTL.getY()));
-//		g2d.draw(rect);
-		g2d.setClip(rect);
-		LatLong llCent = new LatLong((llTopLeft.getLatitude()+llBotRight.getLatitude())/2, (llTopLeft.getLongitude()+llBotRight.getLongitude())/2.);
+		double lenPixels = Math.max(clipRect.height, clipRect.width);
+		double flowAbsAng = riverParams.flowDirection + mapProjector.getMapRotationDegrees();
+		double flowAngR = Math.toRadians(flowAbsAng);
 		if (rtSymbolOpts.drawFlowDirection) {
-			LatLong arrEnd = llCent.travelDistanceMeters(riverParams.flowDirection, r/4);
-			Coordinate3d centPt = mapProjector.getCoord3d(llCent);
-			Coordinate3d arrEndPt = mapProjector.getCoord3d(arrEnd);
+			int x1 = (int) clipRect.getCenterX();
+			int y1 = (int) clipRect.getCenterY();
+			int arrLen = (int) Math.min(lenPixels/5, 150);
+			int x2 = (int) (x1 + Math.sin(flowAngR)*arrLen);
+			int y2 = (int) (y1 - Math.cos(flowAngR)*arrLen);
 			g2d.setStroke(new BasicStroke(2));
-			PamSymbol.drawArrow(g2d, (int) centPt.x, (int) centPt.y, (int) arrEndPt.x, (int) arrEndPt.y, 7);
+			PamSymbol.drawArrow(g2d, x1, y1, x2, y2, arrLen/15);
 		}
 		if (rtSymbolOpts.drawTriggerboundaries) {
-			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getIgnorePoint(), 90-riverParams.flowDirection, lenPixels, Color.CYAN, null);
-			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getTriggerPoint(), 90-riverParams.flowDirection, lenPixels, Color.RED, null);// mid river lines only have a distance. Assume that this distance is perpendicular to the flow. 
+			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getIgnorePoint(), 90+riverParams.flowDirection, lenPixels, Color.CYAN, null);
+			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getTriggerPoint(), 90+riverParams.flowDirection, lenPixels, Color.RED, null);// mid river lines only have a distance. Assume that this distance is perpendicular to the flow. 
 			double[] midPoint = new double[2];
 			double[] midRange = riverParams.getMidRiverRange();
 			if (midRange != null && midRange.length == 2) {
@@ -330,7 +337,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 
 	private void drawMapTrigLine(Graphics2D g2d, LatLong origin, MapRectProjector mapProj, double[] point, 
 			double angleDegrees, double lenPixels, Color colour, String title) {
-		double l = lenPixels*2;
+		double l = lenPixels;
 //		l = 2000;
 		
 		// translate to the point ...
@@ -449,7 +456,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 					double flowR = Math.toRadians(params.flowDirection);
 					midPoint[0] = midRange[i] * Math.cos(flowR);
 					midPoint[1] = midRange[i] * Math.sin(flowR);
-					drawTrigLine(g, sonarPosition, rthiProj, midPoint, 90-params.flowDirection, Color.WHITE, dt ? banks[i] : null);
+					drawTrigLine(g, sonarPosition, rthiProj, midPoint, 90+params.flowDirection, Color.WHITE, dt ? banks[i] : null);
 				}
 			}
 		}
@@ -495,6 +502,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 		if (cb != null) {
 			l = Math.max(cb.height, cb.width);
 		}
+//		defaultSymbol.draw(g2d, ptC.getXYPoint());
 		double x1 = ptC.x + Math.sin(lineAng) * l;
 		double x2 = ptC.x - Math.sin(lineAng) * l;
 		double y1 = ptC.y + Math.cos(lineAng) * l;
@@ -554,8 +562,11 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 				ya = r.y + r.height/2;
 			}
 
-
-			AffineTransform rotTrans = AffineTransform.getRotateInstance(Math.PI/2-lineAng, xa, ya);
+			double textAngle = Math.PI/2-lineAng;
+			if (Math.cos(textAngle) < 0) {
+				textAngle += Math.PI;
+			}
+			AffineTransform rotTrans = AffineTransform.getRotateInstance(textAngle, xa, ya);
 			g2d.setTransform(rotTrans);
 			g2d.drawString(title, xa, ya-3);
 		}
