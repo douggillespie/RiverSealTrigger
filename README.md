@@ -21,6 +21,14 @@ Decisions are made based on direction of river flow (relative to sonar
 frame) and some user defined 'lines' across the river indicating that a
 seal is swimming upstream into the area of interest.
 
+## Installation
+
+Ensure you have an up to date PAMGuard installation and Tritech Acquisition Plugin 
+installed.
+
+Download the latest release and copy the file TritechRiverTriggerV2_00.jar into the
+plugins folder of your PAMGuard installation (most likely C:\\Program Files\\Pamguard\\plugins).
+
 ## V2.0, 24 March 2026
 
 Updated to use absolute positions of detection providing track
