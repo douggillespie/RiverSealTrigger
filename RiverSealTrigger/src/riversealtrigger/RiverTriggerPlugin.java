@@ -40,12 +40,12 @@ public class RiverTriggerPlugin implements PamPluginInterface {
 
 	@Override
 	public String getVersion() {
-		return "1.3";
+		return "2.0";
 	}
 
 	@Override
 	public String getPamVerDevelopedOn() {
-		return "V2.2.17";
+		return "V2.2.18";
 	}
 
 	@Override
