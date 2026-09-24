@@ -39,6 +39,20 @@ public class RiverTriggerParams implements Cloneable, Serializable {
 	 */
 	private HashMap<Integer, RiverRegionThresholds> regionThresholds;
 	
+	/**
+	 * Minimum angle to the flow. 
+	 */
+	public double minUpstreamDirection = 90;
+	
+	private double[] ignorePoint = {13., 36.};
+	
+	private double[] triggerPoint = {-16., 19.}; 
+	
+	/**
+	 * Range of distances that count as mid river Outside this range is bank. 
+	 */
+	private double[] midRiverRange = {0., 50.};
+	
 	public RiverRegionThresholds getRegionThreshold(int riverRegion) {
 		if (regionThresholds == null) {
 			regionThresholds = new HashMap<>();
@@ -74,20 +88,7 @@ public class RiverTriggerParams implements Cloneable, Serializable {
 		
 		public double minLength = 2.5;
 	}
-	
-	/**
-	 * Minimum angle to the flow. 
-	 */
-	public double minUpstreamDirection = 90;
-	
-	private double[] ignorePoint = {13., 36.};
-	
-	private double[] triggerPoint = {-16., 19.}; 
-	
-	/**
-	 * Range of distances that count as mid river Outside this range is bank. 
-	 */
-	private double[] midRiverRange = {0., 50.};
+
 	
 	/**
 	 * Tast treatment duration (seconds)
