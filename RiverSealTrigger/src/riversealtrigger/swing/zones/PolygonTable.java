@@ -41,6 +41,7 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 		else {
 			this.zone = zone.clone();
 		}
+		tableModel.fireTableDataChanged();
 	}
 
 	@Override
@@ -57,26 +58,27 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 		int n = tableModel.getRowCount();
 		double[] xP = new double[n];
 		double[] yP = new double[n];
-		Double x , y;
 		int goodRows = 0;
 		for (int i = 0; i < n; i++) {
-			x = y = null;
 			try {
-				x = Double.valueOf(table.getCellEditor(i, 0).toString());
-				y = Double.valueOf(table.getCellEditor(i, 1).toString());
-			}
-			catch (Exception e) {
-				
-			}
-			if (x != null && y != null) {
-				xP[goodRows] = x;
-				yP[goodRows] = y;
+				Object xValue = table.getValueAt(i, 0);
+				Object yValue = table.getValueAt(i, 1);
+				if (xValue == null || yValue == null) {
+					continue;
+				}
+				xP[goodRows] = Double.parseDouble(xValue.toString());
+				yP[goodRows] = Double.parseDouble(yValue.toString());
 				goodRows++;
+			}
+			catch (NumberFormatException e) {
+				// Ignore incomplete or invalid rows while the user is entering data.
 			}
 		}
 		xP = Arrays.copyOf(xP, goodRows);
 		yP = Arrays.copyOf(yP, goodRows);
-		zone.setPoints(xP, yP);
+		if (zone != null) {
+			zone.setPoints(xP, yP);
+		}
 		return zone;
 	}
 
@@ -113,6 +115,15 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 				return null;
 			}
 			return v[rowIndex];
+		}
+
+		@Override
+		public void setValueAt(Object value, int rowIndex, int columnIndex) {
+			if (zone == null) {
+				return;
+			}
+			readTable();
+			fireTableDataChanged();
 		}
 
 		@Override
