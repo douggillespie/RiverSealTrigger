@@ -12,11 +12,11 @@ import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamProcess;
-import riversealtrigger.RiverTriggerParams.RiverRegionThresholds;
 import riversealtrigger.logging.RiverTriggerLogging;
 import riversealtrigger.swing.RiverTriggerGraphics;
 import riversealtrigger.swing.RiverTriggerSymbolManager;
 import riversealtrigger.swing.TriggerDisplayProvider;
+import riversealtrigger.zones.TriggerZone;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.threshold.ThresholdDetector;
@@ -171,32 +171,47 @@ public class RiverTriggerProcess extends PamProcess {
 //	}
 
 	/**
-	 * Get how far across the river the track is, i.e. is
-	 * it in one of the bank regions. 
+	 * See if the end of the track is in one of the trigger zones. Note
+	 * that if zones overlap, this is going to return the first zone that
+	 * the point is in, and ignore any subsequent ones in the list. 
 	 * @param track
-	 * @return
+	 * @return Trigger zone. 
 	 */
-	private int getRiverRegion(TrackLinkDataUnit track) {
-		/*
-		 *  need to rotate the track according to the flow angle
-		 *  then see if the y coordinate is outside the boundaries 
-		 *  Don't need rotated X, so only bother calculating Y
-		 */
+	private TriggerZone getRiverRegion(TrackLinkDataUnit track) {
 		RiverTriggerParams trigParams = riverTriggerControl.getTriggerParams();
-		double angle = Math.toRadians(90-trigParams.flowDirection);
-		double sinAngle = Math.sin(angle);
-		double cosAngle = Math.cos(angle);
+		ArrayList<TriggerZone> zones = trigParams.getTriggerZones();
+		if (zones == null) {
+			return null;
+		}
 		TrackChain trackChain = track.getTrackChain();
 		DetectedRegion lastRegion = trackChain.getLastRegion();
 		double x = -Math.sin(lastRegion.getPeakBearing())*lastRegion.getPeakRange();
 		double y = Math.cos(lastRegion.getPeakBearing())*lastRegion.getPeakRange();
-		double newY = y*cosAngle-x*sinAngle;
-		double[] banks = trigParams.getMidRiverRange();
-		if (newY < banks[0] ||newY >= banks[1]) {
-			return RiverTriggerParams.RIVER_BANK;
+		for (TriggerZone zone : zones) {
+			if (zone.contains(x, y)) {
+				return zone;
+			}
 		}
-		
-		return RiverTriggerParams.RIVER_MIDDLE;
+		return null;
+//		/*
+//		 *  need to rotate the track according to the flow angle
+//		 *  then see if the y coordinate is outside the boundaries 
+//		 *  Don't need rotated X, so only bother calculating Y
+//		 */
+//		double angle = Math.toRadians(90-trigParams.flowDirection);
+//		double sinAngle = Math.sin(angle);
+//		double cosAngle = Math.cos(angle);
+//		TrackChain trackChain = track.getTrackChain();
+//		DetectedRegion lastRegion = trackChain.getLastRegion();
+//		double x = -Math.sin(lastRegion.getPeakBearing())*lastRegion.getPeakRange();
+//		double y = Math.cos(lastRegion.getPeakBearing())*lastRegion.getPeakRange();
+//		double newY = y*cosAngle-x*sinAngle;
+//		double[] banks = trigParams.getMidRiverRange();
+//		if (newY < banks[0] ||newY >= banks[1]) {
+//			return RiverTriggerParams.RIVER_BANK;
+//		}
+//		
+//		return RiverTriggerParams.RIVER_MIDDLE;
 	}
 	
 	private boolean isTrigger(TrackLinkDataUnit track) {
@@ -204,13 +219,16 @@ public class RiverTriggerProcess extends PamProcess {
 //		if (track.getUID() == 11000001 && complete) {
 //			System.out.println("Track: " + track.getUID());
 //		}
-		if (complete & track.getUID() == 276000001) {
-			System.out.println("Complete track processing");
-		}
+//		if (complete & track.getUID() == 276000001) {
+//			System.out.println("Complete track processing");
+//		}
 		RiverTriggerParams trigParams = riverTriggerControl.getTriggerParams();
 		
-		int riverRegion = getRiverRegion(track);
-		RiverRegionThresholds regionThresholds = trigParams.getRegionThreshold(riverRegion); 
+		TriggerZone riverRegion = getRiverRegion(track);
+		if (riverRegion == null) {
+			return false;
+		}
+		RiverRegionThresholds regionThresholds = riverRegion.getRiverRegionThresholds(); 
 		
 		TrackChain trackChain = track.getTrackChain();
 		// check link quality. 
@@ -242,67 +260,11 @@ public class RiverTriggerProcess extends PamProcess {
 		if (len < regionThresholds.minLength) {
 			return false;
 		}
-		DetectedRegion lastPoint = trackChain.getLastRegion();
-		
-		int zone = getTriggerZone(lastPoint);
-		if (zone == 0) {
-			// too far downstream to care. 
-			return false;
-		}
-		if (zone == 1) {
-			// in middle zone, so trigger if the track has ended. 
-			return complete;
-		}
-		// otherwise zone = 2 and we need to go for it!
+
+		// otherwise we're in a zone and nothing else seems wrong, so ...
 		return true;
 	}
-	
-	/**
-	 * Get the 'zone' for a point.<br>
-	 * 0 = downstream of the ignore line<br>
-	 * 1 = between the ignore and trigger immediately line<br>
-	 * 2 = upstream of the trigger immediately line
-	 * @param region
-	 * @return zone number: 0, 1, or 2
-	 */
-	private int getTriggerZone(DetectedRegion region) {
-
-		double x = -region.getPeakX();
-		double y = region.getPeakY();
-		// convert that to an absolute coordinate for that sonar. 
-		TritechAcquisition tritechDaq = riverTriggerControl.getTritechAcquisition();
-		if (tritechDaq != null) {
-			double[] absXY = tritechDaq.getAbsoluteXY(region);
-			if (absXY != null) {
-				x = absXY[0];
-				y = absXY[1];
-			}
-		}
 		
-		return getTriggerZone(x, y);
-	}
-
-	/**
-	 * 
-	 * Get the 'zone' for a point.<br>
-	 * 0 = downstream of the ignore line<br>
-	 * 1 = between the ignore and trigger immediately line<br>
-	 * 2 = upstream of the trigger immediately line
-	 * @param peakX x Coordinate
-	 * @param peakY y Coordinate
-	 * @return zone number: 0, 1, or 2
-	 */
-	private int getTriggerZone(double peakX, double peakY) {
-		RiverTriggerParams params = riverTriggerControl.getTriggerParams();
-		if (isDownstream(params.getIgnorePoint(), peakX, peakY)) {
-			return 0;
-		}
-		if (isDownstream(params.getTriggerPoint(), peakX, peakY)) {
-			return 1;
-		}
-		return 2;
-	}
-	
 	/**
 	 * Get true if the xy coordinates are downstream of the given point 
 	 * based on the flow angle. 

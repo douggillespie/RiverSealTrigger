@@ -17,8 +17,8 @@ import PamView.dialog.PamDialog;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.SourcePanel;
 import PamguardMVC.PamDataBlock;
+import riversealtrigger.RiverRegionThresholds;
 import riversealtrigger.RiverTriggerParams;
-import riversealtrigger.RiverTriggerParams.RiverRegionThresholds;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 
 public class RiverTriggerDialog extends PamDialog {
@@ -37,7 +37,7 @@ public class RiverTriggerDialog extends PamDialog {
 		super(parentFrame, "River Trigger Settings", true);
 		dataSource = new SourcePanel(this, TrackLinkDataUnit.class, false, true);
 
-		nRegions = RiverTriggerParams.regionNames.length;
+//		nRegions = RiverTriggerParams.regionNames.length;
 		
 		riverFlow = new JTextField(4);
 		minDirection = new JTextField(4);
@@ -119,7 +119,7 @@ public class RiverTriggerDialog extends PamDialog {
 			c.gridx = 0;
 			c.gridy++;
 			c.gridwidth = 1;
-			sPanel.add(new JLabel(RiverTriggerParams.regionNames[i], JLabel.RIGHT), c);
+//			sPanel.add(new JLabel(RiverTriggerParams.regionNames[i], JLabel.RIGHT), c);
 			c.gridwidth = 1;
 			c.gridx = 0;
 			c.gridy++;
@@ -181,9 +181,9 @@ public class RiverTriggerDialog extends PamDialog {
 			minLength[i].setText(String.format("%3.2f", regionTh.minLength));
 			minRSize[i].setText(String.format("%3.2f", regionTh.minRSize));
 		}
-		ignorePoint.setXY(params.getIgnorePoint());
-		triggerPoint.setXY(params.getTriggerPoint());
-		midStreamPoint.setXY(params.getMidRiverRange());
+//		ignorePoint.setXY(params.getIgnorePoint());
+//		triggerPoint.setXY(params.getTriggerPoint());
+//		midStreamPoint.setXY(params.getMidRiverRange());
 	}
 
 	@Override
@@ -210,19 +210,19 @@ public class RiverTriggerDialog extends PamDialog {
 		if (xy == null) {
 			return showWarning("No ignore line set");
 		}
-		params.setIgnorePoint(xy);
-		
-		xy = triggerPoint.getXY();
-		if (xy == null) {
-			return showWarning("No trigger line set");
-		}
-		params.setTriggerPoint(xy);
-		
-		double[] rr = midStreamPoint.getXY();
-		if (rr == null) {
-			return showWarning("River bank areas not defined");
-		}
-		params.setMidRiverRange(rr);
+//		params.setIgnorePoint(xy);
+//		
+//		xy = triggerPoint.getXY();
+//		if (xy == null) {
+//			return showWarning("No trigger line set");
+//		}
+//		params.setTriggerPoint(xy);
+//		
+//		double[] rr = midStreamPoint.getXY();
+//		if (rr == null) {
+//			return showWarning("River bank areas not defined");
+//		}
+//		params.setMidRiverRange(rr);
 		
 		return true;
 	}

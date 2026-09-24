@@ -318,21 +318,21 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 			g2d.setStroke(new BasicStroke(2));
 			PamSymbol.drawArrow(g2d, x1, y1, x2, y2, arrLen/15);
 		}
-		if (rtSymbolOpts.drawTriggerboundaries) {
-			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getIgnorePoint(), 90+riverParams.flowDirection, lenPixels, Color.CYAN, null);
-			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getTriggerPoint(), 90+riverParams.flowDirection, lenPixels, Color.RED, null);// mid river lines only have a distance. Assume that this distance is perpendicular to the flow. 
-			double[] midPoint = new double[2];
-			double[] midRange = riverParams.getMidRiverRange();
-			if (midRange != null && midRange.length == 2) {
-				String[] banks = {"Near Bank", "Far Bank"};
-				for (int i = 0; i < 2; i++) {
-					double flowR = Math.toRadians(riverParams.flowDirection);
-					midPoint[0] = midRange[i] * Math.cos(flowR);
-					midPoint[1] = midRange[i] * Math.sin(flowR);
-					drawMapTrigLine(g2d, origin, mapProjector, midPoint, riverParams.flowDirection, lenPixels, Color.WHITE, null);
-				}
-			}
-		}
+//		if (rtSymbolOpts.drawTriggerboundaries) {
+//			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getIgnorePoint(), 90+riverParams.flowDirection, lenPixels, Color.CYAN, null);
+//			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getTriggerPoint(), 90+riverParams.flowDirection, lenPixels, Color.RED, null);// mid river lines only have a distance. Assume that this distance is perpendicular to the flow. 
+//			double[] midPoint = new double[2];
+//			double[] midRange = riverParams.getMidRiverRange();
+//			if (midRange != null && midRange.length == 2) {
+//				String[] banks = {"Near Bank", "Far Bank"};
+//				for (int i = 0; i < 2; i++) {
+//					double flowR = Math.toRadians(riverParams.flowDirection);
+//					midPoint[0] = midRange[i] * Math.cos(flowR);
+//					midPoint[1] = midRange[i] * Math.sin(flowR);
+//					drawMapTrigLine(g2d, origin, mapProjector, midPoint, riverParams.flowDirection, lenPixels, Color.WHITE, null);
+//				}
+//			}
+//		}
 		
 	}
 
@@ -440,27 +440,27 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 			}
 		}
 
-		if (rtSymbolOpts.drawTriggerboundaries) {
-			/**
-			 * Draw the trigger lines. These will need to be translated. 
-			 */
-			boolean dt = rtSymbolOpts.showLabels;
-			drawTrigLine(g, sonarPosition, rthiProj, params.getIgnorePoint(), params.flowDirection, Color.CYAN, dt ? "Ignore line" : null);
-			drawTrigLine(g, sonarPosition, rthiProj, params.getTriggerPoint(), params.flowDirection, Color.RED, dt ? "Trigger line" : null);
-
-			// mid river lines only have a distance. Assume that this distance is perpendicular to the flow. 
-			double[] midPoint = new double[2];
-			double[] midRange = params.getMidRiverRange();
-			if (midRange != null && midRange.length == 2) {
-				String[] banks = {"Near Bank", "Far Bank"};
-				for (int i = 0; i < 2; i++) {
-					double flowR = Math.toRadians(params.flowDirection);
-					midPoint[0] = midRange[i] * Math.cos(flowR);
-					midPoint[1] = midRange[i] * Math.sin(flowR);
-					drawTrigLine(g, sonarPosition, rthiProj, midPoint, 90+params.flowDirection, Color.WHITE, dt ? banks[i] : null);
-				}
-			}
-		}
+//		if (rtSymbolOpts.drawTriggerboundaries) {
+//			/**
+//			 * Draw the trigger lines. These will need to be translated. 
+//			 */
+//			boolean dt = rtSymbolOpts.showLabels;
+//			drawTrigLine(g, sonarPosition, rthiProj, params.getIgnorePoint(), params.flowDirection, Color.CYAN, dt ? "Ignore line" : null);
+//			drawTrigLine(g, sonarPosition, rthiProj, params.getTriggerPoint(), params.flowDirection, Color.RED, dt ? "Trigger line" : null);
+//
+//			// mid river lines only have a distance. Assume that this distance is perpendicular to the flow. 
+//			double[] midPoint = new double[2];
+//			double[] midRange = params.getMidRiverRange();
+//			if (midRange != null && midRange.length == 2) {
+//				String[] banks = {"Near Bank", "Far Bank"};
+//				for (int i = 0; i < 2; i++) {
+//					double flowR = Math.toRadians(params.flowDirection);
+//					midPoint[0] = midRange[i] * Math.cos(flowR);
+//					midPoint[1] = midRange[i] * Math.sin(flowR);
+//					drawTrigLine(g, sonarPosition, rthiProj, midPoint, 90+params.flowDirection, Color.WHITE, dt ? banks[i] : null);
+//				}
+//			}
+//		}
 
 	}
 

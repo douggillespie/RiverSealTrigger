@@ -17,6 +17,7 @@ import offlineProcessing.OLProcessDialog;
 import offlineProcessing.OfflineTaskGroup;
 import riversealtrigger.offline.TriggerOfflineTask;
 import riversealtrigger.swing.RiverTriggerDialog;
+import riversealtrigger.swing.RiverTriggerDialogZ;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.track.TrackLinkDataBlock;
 
@@ -93,7 +94,7 @@ public class RiverTriggerControl extends PamControlledUnit implements PamSetting
 	}
 
 	public void showSettings(Frame parentFrame) {
-		RiverTriggerParams newSettings = RiverTriggerDialog.showDialog(parentFrame, triggerParams);
+		RiverTriggerParams newSettings = RiverTriggerDialogZ.showDialog(parentFrame, triggerParams);
 		if (newSettings != null) {
 			this.triggerParams = newSettings;
 			triggerProcess.prepareProcess();
