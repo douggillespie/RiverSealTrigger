@@ -2,7 +2,9 @@ package riversealtrigger.swing.zones;
 
 import java.awt.BorderLayout;
 import java.awt.Window;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -41,6 +43,7 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 		else {
 			this.zone = zone.clone();
 		}
+		tableModel.resetValues();
 		tableModel.fireTableDataChanged();
 	}
 
@@ -55,41 +58,64 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 	}
 	
 	private ZonePolygon readTable() {
-		int n = tableModel.getRowCount();
-		double[] xP = new double[n];
-		double[] yP = new double[n];
-		int goodRows = 0;
-		for (int i = 0; i < n; i++) {
-			try {
-				Object xValue = table.getValueAt(i, 0);
-				Object yValue = table.getValueAt(i, 1);
-				if (xValue == null || yValue == null) {
-					continue;
-				}
-				xP[goodRows] = Double.parseDouble(xValue.toString());
-				yP[goodRows] = Double.parseDouble(yValue.toString());
-				goodRows++;
-			}
-			catch (NumberFormatException e) {
-				// Ignore incomplete or invalid rows while the user is entering data.
+		List<Double> xPoints = new ArrayList<Double>();
+		List<Double> yPoints = new ArrayList<Double>();
+
+		for (int row = 0; row < tableModel.getRowCount(); row++) {
+			Double x = parseNumber(tableModel.getValueAt(row, 0));
+			Double y = parseNumber(tableModel.getValueAt(row, 1));
+			// Ignore empty or incomplete rows. Only complete numeric pairs become points.
+			if (x != null && y != null) {
+				xPoints.add(x);
+				yPoints.add(y);
 			}
 		}
-		xP = Arrays.copyOf(xP, goodRows);
-		yP = Arrays.copyOf(yP, goodRows);
+
+		double[] xP = new double[xPoints.size()];
+		double[] yP = new double[yPoints.size()];
+		for (int i = 0; i < xP.length; i++) {
+			xP[i] = xPoints.get(i);
+			yP[i] = yPoints.get(i);
+		}
+
 		if (zone != null) {
 			zone.setPoints(xP, yP);
 		}
 		return zone;
 	}
 
+	private Double parseNumber(Object value) {
+		if (value == null || value.toString().trim().isEmpty()) {
+			return null;
+		}
+		try {
+			return Double.valueOf(value.toString().trim());
+		}
+		catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
 	private class TableModel extends AbstractTableModel {
+
+		private List<Object[]> values = new ArrayList<Object[]>();
+
+		private void resetValues() {
+			values.clear();
+			if (zone != null) {
+				double[] xPoints = zone.getxPoints();
+				double[] yPoints = zone.getyPoints();
+				for (int i = 0; i < zone.getNPoints(); i++) {
+					values.add(new Object[] {xPoints[i], yPoints[i]});
+				}
+			}
+			// Always keep one blank row available for the next point.
+			values.add(new Object[] {null, null});
+		}
 
 		@Override
 		public int getRowCount() {
-			if (zone == null) {
-				return 1;
-			}
-			return zone.getNPoints()+1;
+			return values.size();
 		}
 
 		@Override
@@ -99,31 +125,20 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			if (zone == null) {
-				return null;
-			}
-			double[] v = null;
-			switch (columnIndex) {
-			case 0:
-				v = zone.getxPoints();
-				break;
-			case 1:
-				v = zone.getyPoints();
-				break;
-			}
-			if (v == null || rowIndex >= v.length) {
-				return null;
-			}
-			return v[rowIndex];
+			return values.get(rowIndex)[columnIndex];
 		}
 
 		@Override
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
-			if (zone == null) {
-				return;
+			values.get(rowIndex)[columnIndex] = value;
+
+			// Do not update the polygon until both cells in this row contain valid numbers.
+			if (parseNumber(values.get(rowIndex)[0]) != null
+					&& parseNumber(values.get(rowIndex)[1]) != null) {
+				readTable();
+				resetValues();
+				fireTableDataChanged();
 			}
-			readTable();
-			fireTableDataChanged();
 		}
 
 		@Override
