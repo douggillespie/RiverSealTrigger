@@ -17,6 +17,12 @@ public interface RiverZone {
 	public String getName();
 	
 	/**
+	 * Set the name
+	 * @param name
+	 */
+	public void setName(String name);
+	
+	/**
 	 * Get if the zone contains the point x,y
 	 * @param x
 	 * @param y

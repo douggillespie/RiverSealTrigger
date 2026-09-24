@@ -11,4 +11,5 @@ public interface ZoneDialogPanel<T extends RiverZone> {
 	public T getZone();
 	
 	public JComponent getPanel();
+	
 }

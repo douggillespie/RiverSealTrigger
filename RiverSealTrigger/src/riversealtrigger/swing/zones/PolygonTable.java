@@ -3,7 +3,6 @@ package riversealtrigger.swing.zones;
 import java.awt.BorderLayout;
 import java.awt.Window;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JComponent;
@@ -78,6 +77,9 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 			yP[i] = yPoints.get(i);
 		}
 
+		if (zone == null) {
+			zone = new ZonePolygon("");
+		}
 		if (zone != null) {
 			zone.setPoints(xP, yP);
 		}
@@ -125,7 +127,12 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
+			try {
 			return values.get(rowIndex)[columnIndex];
+			}
+			catch (Exception e) {
+				return null;
+			}
 		}
 
 		@Override
