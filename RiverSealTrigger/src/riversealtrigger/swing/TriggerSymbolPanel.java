@@ -2,6 +2,7 @@ package riversealtrigger.swing;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -23,9 +24,9 @@ public class TriggerSymbolPanel extends StandardSymbolOptionsPanel {
 	
 	private RiverTriggerSymbolChooser triggerSymbolChooser;
 
-	public TriggerSymbolPanel(StandardSymbolManager standardSymbolManager,
+	public TriggerSymbolPanel(Window parent, StandardSymbolManager standardSymbolManager,
 			RiverTriggerSymbolChooser triggerSymbolChooser) {
-		super(standardSymbolManager, triggerSymbolChooser);
+		super(parent, standardSymbolManager, triggerSymbolChooser);
 		this.triggerSymbolChooser = triggerSymbolChooser;
 		mainPanel = new JPanel(new BorderLayout());
 		JPanel sPanel = new JPanel();

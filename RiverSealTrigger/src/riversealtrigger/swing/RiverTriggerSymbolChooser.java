@@ -1,5 +1,7 @@
 package riversealtrigger.swing;
 
+import java.awt.Window;
+
 import PamView.GeneralProjector;
 import PamView.symbol.PamSymbolOptions;
 import PamView.symbol.StandardSymbolChooser;
@@ -33,8 +35,8 @@ public class RiverTriggerSymbolChooser extends StandardSymbolChooser {
 	}
 
 	@Override
-	public SwingSymbolOptionsPanel getSwingOptionsPanel(GeneralProjector projector) {
-		return new TriggerSymbolPanel(getSymbolManager(), this);
+	public SwingSymbolOptionsPanel getSwingOptionsPanel(Window parent, GeneralProjector projector) {
+		return new TriggerSymbolPanel(parent, getSymbolManager(), this);
 	}
 
 }

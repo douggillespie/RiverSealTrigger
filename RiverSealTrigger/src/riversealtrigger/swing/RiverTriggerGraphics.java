@@ -19,6 +19,7 @@ import Map.MapProjector;
 import Map.MapRectProjector;
 import PamUtils.Coordinate3d;
 import PamUtils.LatLong;
+import PamUtils.PamCalendar;
 import PamUtils.PamUtils;
 import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
@@ -72,7 +73,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 
 	private Rectangle drawOnMap(Graphics g, PamDataUnit pamDataUnit, MapRectProjector generalProjector) {
 
-		LatLong origin = getStreamerOrigin(0, 0);
+		LatLong origin = getStreamerOrigin(0, pamDataUnit.getTimeMilliseconds());
 		if (origin == null) {
 			return null;
 		}
@@ -253,7 +254,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 			return;
 		}
 
-		LatLong origin = getStreamerOrigin(0, 0);
+		LatLong origin = getStreamerOrigin(0, PamCalendar.getTimeInMillis());
 		
 		int[] sonarIds = tritechDaq.getSonarIds();
 		double r = 1;
