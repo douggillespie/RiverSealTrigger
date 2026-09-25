@@ -38,4 +38,10 @@ public interface RiverZone {
 	 */
 	public String getShape();
 	
+	/**
+	 * Validate the zone, e.g. check it has enough points and a non zero area, etc. 
+	 * @return null if it's OK, or an informative String error if it isn't. 
+	 */
+	public String validate();
+	
 }

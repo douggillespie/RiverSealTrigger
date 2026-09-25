@@ -60,6 +60,7 @@ public class RiverTriggerProcess extends PamProcess {
 		RiverTriggerParams params = riverTriggerControl.getTriggerParams();
 		PamDataBlock source = PamController.getInstance().getDataBlockByLongName(params.dataSourceName);
 		setParentDataBlock(source);
+
 	}
 
 	@Override
@@ -79,13 +80,11 @@ public class RiverTriggerProcess extends PamProcess {
 	}
 
 	private void updatedTrack(TrackLinkDataUnit track) {
-		boolean isTrig = isTrigger(track); 
-		if (isTrig == false) {
+		TriggerZone triggerZone = isTrigger(track); 
+		if (triggerZone == null) {
 			return;
 		}
-		
-		
-		
+				
 		RiverTriggerDataUnit currentTrigger = currentTriggers.get(track);
 		DetectedRegion lastPt = track.getTrackChain().getLastRegion();
 
@@ -98,7 +97,7 @@ public class RiverTriggerProcess extends PamProcess {
 //			System.out.printf("Creating trigger from track UID %d at %s\n", track.getUID(), 
 //					PamCalendar.formatDBDateTime(track.getTimeMilliseconds(),  true));
 			// all now needs to be done on absolute coordinates. 
-			currentTrigger = new RiverTriggerDataUnit(lastPt.getTimeMilliseconds(), xy[0], xy[1], track);
+			currentTrigger = new RiverTriggerDataUnit(lastPt.getTimeMilliseconds(), xy[0], xy[1], track, triggerZone.getName());
 			currentTriggers.put(track, currentTrigger);
 			outputData.addPamData(currentTrigger);
 		}
@@ -177,7 +176,7 @@ public class RiverTriggerProcess extends PamProcess {
 	 * @param track
 	 * @return Trigger zone. 
 	 */
-	private TriggerZone getRiverRegion(TrackLinkDataUnit track) {
+	private TriggerZone getRiverZone(TrackLinkDataUnit track) {
 		RiverTriggerParams trigParams = riverTriggerControl.getTriggerParams();
 		ArrayList<TriggerZone> zones = trigParams.getTriggerZones();
 		if (zones == null) {
@@ -185,8 +184,23 @@ public class RiverTriggerProcess extends PamProcess {
 		}
 		TrackChain trackChain = track.getTrackChain();
 		DetectedRegion lastRegion = trackChain.getLastRegion();
-		double x = -Math.sin(lastRegion.getPeakBearing())*lastRegion.getPeakRange();
-		double y = Math.cos(lastRegion.getPeakBearing())*lastRegion.getPeakRange();
+
+//		double x = -Math.sin(lastRegion.getPeakBearing())*lastRegion.getPeakRange();
+//		double y = Math.cos(lastRegion.getPeakBearing())*lastRegion.getPeakRange();
+		double x = lastRegion.getPeakX();
+		double y = lastRegion.getPeakY();		
+		/*
+		 * need to get the rotated positions, not the raw ones. This requires 
+		 * a reference back to the TrackLinkProcess. 
+		 */
+		TritechAcquisition tritechDaq = riverTriggerControl.getTritechAcquisition();
+		if (tritechDaq != null) {
+			double[] absXY = tritechDaq.getAbsoluteXY(lastRegion);
+			if (absXY != null) {
+				x = absXY[0];
+				y = absXY[1];
+			}
+		}
 		for (TriggerZone zone : zones) {
 			if (zone.contains(x, y)) {
 				return zone;
@@ -214,7 +228,12 @@ public class RiverTriggerProcess extends PamProcess {
 //		return RiverTriggerParams.RIVER_MIDDLE;
 	}
 	
-	private boolean isTrigger(TrackLinkDataUnit track) {
+	/**
+	 * Work out if it's a trigger, and if it is, work out which trigger zone it's in
+	 * @param track
+	 * @return null if no trigger, or a zone if it is a trigger. 
+	 */
+	private TriggerZone isTrigger(TrackLinkDataUnit track) {
 		boolean complete = !track.isEmbryonic();
 //		if (track.getUID() == 11000001 && complete) {
 //			System.out.println("Track: " + track.getUID());
@@ -224,11 +243,18 @@ public class RiverTriggerProcess extends PamProcess {
 //		}
 		RiverTriggerParams trigParams = riverTriggerControl.getTriggerParams();
 		
-		TriggerZone riverRegion = getRiverRegion(track);
-		if (riverRegion == null) {
-			return false;
+		TriggerZone riverZone = getRiverZone(track);
+		if (riverZone == null) {
+			return null;
 		}
-		RiverRegionThresholds regionThresholds = riverRegion.getRiverRegionThresholds(); 
+		RiverRegionThresholds regionThresholds = riverZone.getRiverRegionThresholds(); 
+		/*
+		 * IF the track is still growing, then we only continue if we're in a zone that
+		 * wants immediate triggering. 
+		 */
+		if (track.isEmbryonic() && regionThresholds.triggerType == RiverRegionThresholds.TRIGGER_ONEND) {
+			return null;
+		}
 		
 		TrackChain trackChain = track.getTrackChain();
 		// check link quality. 
@@ -237,7 +263,7 @@ public class RiverTriggerProcess extends PamProcess {
 //			System.out.printf("Score for track %d length %d is %5.3f\n", 440002235, track.getTrackChain().getRegions().size(), q);
 //		}
 		if (q < regionThresholds.minLinkScore) {
-			return false;
+			return null;
 		}
 //		if (track.getUID() == 440002203) {
 //			System.out.printf("WTF is this track here ? for track %d is %5.3f\n", 440002203, q);
@@ -245,24 +271,24 @@ public class RiverTriggerProcess extends PamProcess {
 		// check size
 		double rSize = trackChain.getMeanRSize();
 		if (rSize < regionThresholds.minRSize) {
-			return false;
+			return null;
 		}
 		TrackVector trackVector = track.getTrackChain().getTrackVector();
 		if (trackVector == null) {
-			return false;
+			return null;
 		}
 		// check heading
 		double head = trackVector.getRelativeHeading(trigParams.flowDirection);
 		if (Math.abs(head) < trigParams.minUpstreamDirection) {
-			return false; // downstream
+			return null; // downstream
 		}
 		double len = track.getTrackChain().getEnd2EndMetres();
 		if (len < regionThresholds.minLength) {
-			return false;
+			return null;
 		}
 
 		// otherwise we're in a zone and nothing else seems wrong, so ...
-		return true;
+		return riverZone;
 	}
 		
 	/**

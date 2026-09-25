@@ -21,6 +21,7 @@ public class RiverTriggerDataUnit extends PamDataUnit<PamDataUnit, PamDataUnit> 
 	private long triggerEnd;
 	private DataUnitBaseData basicData;
 	private ArrayList<Long> trackUIDs = new ArrayList();
+	private String zoneName;
 
 	public double getTriggerX() {
 		return triggerX;
@@ -34,10 +35,11 @@ public class RiverTriggerDataUnit extends PamDataUnit<PamDataUnit, PamDataUnit> 
 		return trackDataUnits;
 	}
 
-	public RiverTriggerDataUnit(long timeMilliseconds, double x, double y, TrackLinkDataUnit trackUnit) {
+	public RiverTriggerDataUnit(long timeMilliseconds, double x, double y, TrackLinkDataUnit trackUnit, String zoneName) {
 		super(timeMilliseconds);
 		this.triggerX = endX = x;
 		this.triggerY = endY = y;
+		this.zoneName = zoneName;
 		trackDataUnits = new ArrayList<>();
 		triggerEnd = timeMilliseconds;
 		if (trackUnit != null) {
@@ -180,6 +182,13 @@ public class RiverTriggerDataUnit extends PamDataUnit<PamDataUnit, PamDataUnit> 
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * @return the zoneName
+	 */
+	public String getZoneName() {
+		return zoneName;
 	}
 
 

@@ -48,6 +48,7 @@ public class PolygonTable implements ZoneDialogPanel<ZonePolygon>{
 
 	@Override
 	public ZonePolygon getZone() {
+		readTable();
 		return zone;
 	}
 

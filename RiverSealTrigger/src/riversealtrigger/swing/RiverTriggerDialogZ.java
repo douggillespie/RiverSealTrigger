@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -18,6 +19,7 @@ import PamUtils.LatLong;
 import PamView.dialog.PamDialog;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.SourcePanel;
+import PamView.dialog.warn.WarnOnce;
 import riversealtrigger.RiverTriggerParams;
 import riversealtrigger.swing.zones.PolygonDialog;
 import riversealtrigger.zones.TriggerZone;
@@ -39,6 +41,7 @@ public class RiverTriggerDialogZ extends PamDialog implements ZoneTableListener{
 
 	private RiverTriggerDialogZ(Window parentFrame, RiverTriggerParams riverTriggerParams) {
 		super(parentFrame, "River trigger settings", false);
+		this.params = riverTriggerParams;
 		JPanel mainPanel = new JPanel(new BorderLayout()); 
 		
 		zoneTable = new ZoneTable(riverTriggerParams);
@@ -80,6 +83,12 @@ public class RiverTriggerDialogZ extends PamDialog implements ZoneTableListener{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				editZone();
+			}
+		});
+		rmButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rmZone();
 			}
 		});
 		upButton.addActionListener(new ActionListener() {
@@ -129,22 +138,76 @@ public class RiverTriggerDialogZ extends PamDialog implements ZoneTableListener{
 	}
 
 	protected void dnZone() {
-		// TODO Auto-generated method stub
-		
+		ArrayList<TriggerZone> zones = params.getTriggerZones();
+		int selRow = zoneTable.getSelectedRow();
+		if (selRow < 0 || selRow >= zones.size()-1) {
+			return;
+		}
+		TriggerZone removed = zones.remove(selRow);
+		if (removed != null) {
+			zones.add(selRow+11, removed);
+		}
+		zoneTable.update();
+		zoneTable.selectZone(removed);
 	}
 
 	protected void upZone() {
-		// TODO Auto-generated method stub
-		
+		ArrayList<TriggerZone> zones = params.getTriggerZones();
+		int selRow = zoneTable.getSelectedRow();
+		if (selRow < 1) {
+			return;
+		}
+		TriggerZone removed = zones.remove(selRow);
+		if (removed != null) {
+			zones.add(selRow-1, removed);
+		}
+		zoneTable.update();
+		zoneTable.selectZone(removed);
+	}
+
+	/**
+	 * Remove selected zone. 
+	 */
+	protected void rmZone() {
+		TriggerZone selZone = zoneTable.getSelectedZone();
+		if (selZone == null) {
+			return;
+		}
+		String msg = String.format("Do you want to permmanently remove the %s trigger zone ?", selZone.getName());
+		int ans = WarnOnce.showNamedWarning("Trigger zone removal", this, "Remove trigger zone", msg, WarnOnce.OK_CANCEL_OPTION);
+		if (ans == WarnOnce.CANCEL_OPTION) {
+			return;
+		}
+		params.getTriggerZones().remove(selZone);
+		zoneTable.update();
 	}
 
 	protected void editZone() {
-		// TODO Auto-generated method stub
-		
+		TriggerZone selZone = zoneTable.getSelectedZone();
+		if (selZone == null) {
+			return;
+		}
+		TriggerZone updatedZone = PolygonDialog.showDialog(this, selZone);
+		if (updatedZone != null) {
+			ArrayList<TriggerZone> zones = params.getTriggerZones();
+			int currInd = zones.indexOf(selZone);
+			if (currInd >= 0) {
+				zones.remove(currInd);
+				zones.add(currInd, updatedZone);
+			}
+			else {
+				zones.add(updatedZone);
+			}
+		}
+		zoneTable.update();
 	}
 
 	protected void addZone() {
 		TriggerZone newZone = PolygonDialog.showDialog(this, null);
+		if (newZone != null) {
+			params.addTriggerZone(newZone);
+			zoneTable.update();
+		}
 	}
 
 	@Override
@@ -176,14 +239,28 @@ public class RiverTriggerDialogZ extends PamDialog implements ZoneTableListener{
 	}
 
 	private void setParams(RiverTriggerParams riverTriggerParams) {
-		// TODO Auto-generated method stub
-		
+		this.params = riverTriggerParams;
+		dataSource.setSource(params.dataSourceName);
+		riverFlow.setText(Double.valueOf(params.flowDirection).toString());
+		minDirection.setText(Double.valueOf(params.minUpstreamDirection).toString());
 	}
 
 	@Override
 	public boolean getParams() {
-		// TODO Auto-generated method stub
-		return false;
+		params.dataSourceName = dataSource.getSourceName();
+		try {
+			params.flowDirection = Double.valueOf(riverFlow.getText());
+		}
+		catch (NumberFormatException e) {
+			return showWarning("Invalid flow diretion");
+		}
+		try {
+			params.minUpstreamDirection = Double.valueOf(minDirection.getText());
+		}
+		catch (NumberFormatException e) {
+			return showWarning("Invalid seal diretion");
+		}
+		return true;
 	}
 
 	@Override

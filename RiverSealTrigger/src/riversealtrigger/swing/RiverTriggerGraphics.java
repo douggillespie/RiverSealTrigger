@@ -13,6 +13,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 import Jama.Matrix;
 import Map.MapProjector;
@@ -35,6 +36,7 @@ import PamguardMVC.dataSelector.DataSelector;
 import riversealtrigger.RiverTriggerControl;
 import riversealtrigger.RiverTriggerDataUnit;
 import riversealtrigger.RiverTriggerParams;
+import riversealtrigger.zones.TriggerZone;
 import tritechplugins.acquire.SonarDaqParams;
 import tritechplugins.acquire.SonarPosition;
 import tritechplugins.acquire.TritechAcquisition;
@@ -317,6 +319,12 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 			int y2 = (int) (y1 - Math.cos(flowAngR)*arrLen);
 			g2d.setStroke(new BasicStroke(2));
 			PamSymbol.drawArrow(g2d, x1, y1, x2, y2, arrLen/15);
+		}
+		
+		// draw the zones. To accommodate different zone types, they can do their own drawing. 
+		ArrayList<TriggerZone> zones = riverTriggerControl.getTriggerParams().getTriggerZones();
+		for (TriggerZone aZone : zones) {
+			aZone.swingDraw(g2d, mapProjector);
 		}
 //		if (rtSymbolOpts.drawTriggerboundaries) {
 //			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getIgnorePoint(), 90+riverParams.flowDirection, lenPixels, Color.CYAN, null);

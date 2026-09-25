@@ -21,6 +21,7 @@ import riversealtrigger.RiverRegionThresholds;
 import riversealtrigger.RiverTriggerParams;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 
+@Deprecated
 public class RiverTriggerDialog extends PamDialog {
 
 	private SourcePanel dataSource;
@@ -175,12 +176,12 @@ public class RiverTriggerDialog extends PamDialog {
 		dataSource.setSource(params.dataSourceName);
 		riverFlow.setText(String.format("%3.1f", params.flowDirection));
 		minDirection.setText(String.format("%3.1f", params.minUpstreamDirection));
-		for (int i = 0; i < nRegions; i++) {
-			RiverRegionThresholds regionTh = params.getRegionThreshold(i);
-			minLinkScore[i].setText(String.format("%3.2f", regionTh.minLinkScore));
-			minLength[i].setText(String.format("%3.2f", regionTh.minLength));
-			minRSize[i].setText(String.format("%3.2f", regionTh.minRSize));
-		}
+//		for (int i = 0; i < nRegions; i++) {
+//			RiverRegionThresholds regionTh = params.getRegionThreshold(i);
+//			minLinkScore[i].setText(String.format("%3.2f", regionTh.minLinkScore));
+//			minLength[i].setText(String.format("%3.2f", regionTh.minLength));
+//			minRSize[i].setText(String.format("%3.2f", regionTh.minRSize));
+//		}
 //		ignorePoint.setXY(params.getIgnorePoint());
 //		triggerPoint.setXY(params.getTriggerPoint());
 //		midStreamPoint.setXY(params.getMidRiverRange());
@@ -193,19 +194,19 @@ public class RiverTriggerDialog extends PamDialog {
 			return false;
 		}
 		params.dataSourceName = source.getLongDataName();
-		try {
-			params.flowDirection = Double.valueOf(riverFlow.getText());
-			params.minUpstreamDirection = Double.valueOf(minDirection.getText());
-			for (int i = 0; i < nRegions; i++) {
-				RiverRegionThresholds regionTh = params.getRegionThreshold(i);
-				regionTh.minLinkScore = Double.valueOf(minLinkScore[i].getText());
-				regionTh.minLength = Double.valueOf(minLength[i].getText());
-				regionTh.minRSize = Double.valueOf(minRSize[i].getText());
-			}
-		}
-		catch (NumberFormatException e) {
-			return showWarning("Invalid numeric parameter in dialog");
-		}
+//		try {
+//			params.flowDirection = Double.valueOf(riverFlow.getText());
+//			params.minUpstreamDirection = Double.valueOf(minDirection.getText());
+//			for (int i = 0; i < nRegions; i++) {
+//				RiverRegionThresholds regionTh = params.getRegionThreshold(i);
+//				regionTh.minLinkScore = Double.valueOf(minLinkScore[i].getText());
+//				regionTh.minLength = Double.valueOf(minLength[i].getText());
+//				regionTh.minRSize = Double.valueOf(minRSize[i].getText());
+//			}
+//		}
+//		catch (NumberFormatException e) {
+//			return showWarning("Invalid numeric parameter in dialog");
+//		}
 		double[] xy = ignorePoint.getXY();
 		if (xy == null) {
 			return showWarning("No ignore line set");

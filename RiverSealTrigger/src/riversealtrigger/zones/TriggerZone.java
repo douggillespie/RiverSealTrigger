@@ -65,4 +65,16 @@ public class TriggerZone implements Serializable, RiverZone {
 	public void setName(String name) {
 		riverZone.setName(name);
 	}
+
+	@Override
+	public String validate() {
+		return riverZone.validate();
+	}
+
+	/**
+	 * @return the riverZone
+	 */
+	public RiverZone getRiverZone() {
+		return riverZone;
+	}
 }

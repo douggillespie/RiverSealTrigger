@@ -15,7 +15,7 @@ import tritechplugins.detect.track.TrackLinkDataUnit;
 
 public class RiverTriggerLogging extends SQLLogging {
 	
-	private PamTableItem nTracks, trackStart, triggerEnd, triggerX, triggerY, endX, endY, trackUIDs;
+	private PamTableItem nTracks, trackStart, triggerEnd, triggerX, triggerY, endX, endY, trackUIDs, zoneName;
 
 	public RiverTriggerLogging(RiverTriggerDataBlock pamDataBlock) {
 		super(pamDataBlock);
@@ -23,6 +23,7 @@ public class RiverTriggerLogging extends SQLLogging {
 		PamTableDefinition table = new PamTableDefinition(pamDataBlock.getDataName());
 		table.addTableItem(triggerEnd = new PamTableItem("Trigger End", Types.TIMESTAMP));
 		table.addTableItem(trackStart = new PamTableItem("Track Start", Types.TIMESTAMP));
+		table.addTableItem(zoneName = new PamTableItem("Trigger Zone", Types.CHAR, 20));
 		table.addTableItem(triggerX = new PamTableItem("Trigger X", Types.REAL));
 		table.addTableItem(triggerY = new PamTableItem("Trigger Y", Types.REAL));
 		table.addTableItem(endX = new PamTableItem("End X", Types.REAL));
@@ -38,6 +39,7 @@ public class RiverTriggerLogging extends SQLLogging {
 	@Override
 	public void setTableData(SQLTypes sqlTypes, PamDataUnit pamDataUnit) {
 		RiverTriggerDataUnit rtDU = (RiverTriggerDataUnit) pamDataUnit;
+		zoneName.setValue(rtDU.getZoneName());
 		triggerX.setValue(rtDU.getTriggerX());
 		triggerY.setValue(rtDU.getTriggerY());
 		endX.setValue(rtDU.getEndX());
@@ -59,18 +61,19 @@ public class RiverTriggerLogging extends SQLLogging {
 		double y = triggerY.getDoubleValue();
 		double eX = this.endX.getDoubleValue();
 		double eY = this.endY.getDoubleValue();
+		String zone = zoneName.getStringValue();
 		String uids = trackUIDs.getDeblankedStringValue();
 		long trigTime = timeMilliseconds;
 		long trackTime = SQLTypes.millisFromTimeStamp(trackStart.getValue());
 		long trigEnd = SQLTypes.millisFromTimeStamp(triggerEnd.getValue());
 		/*
-		 *  there was a mess up in the time zone written for the trigEnd. Times shold be pretty short, so
+		 *  there was a mess up in the time zone written for the trigEnd. Times should be pretty short, so
 		 *  it should be close to the trig start.  Now fixed, so this only applies to a small amount of 2024 data. 
 		 */
 		while (trigEnd - timeMilliseconds > 180000) {
 			trigEnd -= 3600000L;
 		}
-		RiverTriggerDataUnit rtdu = new RiverTriggerDataUnit(timeMilliseconds, x, y, null);
+		RiverTriggerDataUnit rtdu = new RiverTriggerDataUnit(timeMilliseconds, x, y, null, zone);
 		rtdu.setTriggerEnd(trigEnd, eX, eY, null);
 		rtdu.setTrackUIDList(uids);
 		return rtdu;
