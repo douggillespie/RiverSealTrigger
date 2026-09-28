@@ -8,7 +8,7 @@ import PamguardMVC.PamDataUnit;
 import riversealtrigger.zones.TriggerZone;
 import riversealtrigger.zones.ZonedData;
 
-public class RiverTriggerDataBlock extends PamDataBlock<RiverTriggerDataUnit> implements ZonedData{
+public class RiverTriggerDataBlock extends PamDataBlock<RiverTriggerDataUnit> implements ZonedData {
 
 	private RiverTriggerProcess riverTriggerProcess;
 	private RiverTriggerControl riverTriggerControl;

@@ -89,40 +89,12 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 
 		LatLong trigLL = origin.addDistanceMeters(x, y);
 		Coordinate3d trigCoord = generalProjector.getCoord3d(trigLL);
-		//		
-		//		double r = Math.sqrt(x*x+y*y);
-		//		double ang = -Math.atan2(x,y);
-		//
-		//		double endX = rtdu.getEndX();
-		//		double endY = rtdu.getEndY();
-		//		double endR = Math.sqrt(endX*endX+endY*endY);
-		//		double endAng = -Math.atan2(endX, endY);
-		//
-		//		Coordinate3d pos = generalProjector.getCoord3d(r, ang,  0);
-		//		if (pos == null) {
-		//			return null;
-		//		}
 
 		PamSymbol symbol = getPamSymbol(rtdu, generalProjector);
 
 		Point xy = trigCoord.getXYPoint();
 		Rectangle rect = symbol.draw(g, xy);
 		generalProjector.addHoverData(trigCoord, rtdu, 1);
-
-		//		Coordinate3d pos2 = generalProjector.getCoord3d(endR, endAng, 0);
-		//		if (pos2 == null) {
-		//			return rect;
-		//		}
-		//		Point xy2 = pos2.getXYPoint();
-		//		double dist = pos.getXYPoint().distance(xy2);
-		//		if (dist > 0 && !Double.isNaN(endR)) {
-		//			g.setColor(symbol.getLineColor());
-		//			Graphics2D g2d = (Graphics2D) g;
-		//			g2d.setStroke(new BasicStroke(symbol.getLineThickness()));
-		//			symbol.draw(g, xy2);
-		//			PamSymbol.drawArrow(g, xy.x,  xy.y, xy2.x, xy2.y, 10);
-		//			generalProjector.addHoverData(pos2, rtdu, 2);
-		//		}
 
 		return rect;
 
@@ -290,21 +262,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 
 			}
 		}
-		//		if (rtSymbolOpts.drawTriggerboundaries) {
-		//			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getIgnorePoint(), 90+riverParams.flowDirection, lenPixels, Color.CYAN, null);
-		//			drawMapTrigLine(g2d, origin, mapProjector, riverParams.getTriggerPoint(), 90+riverParams.flowDirection, lenPixels, Color.RED, null);// mid river lines only have a distance. Assume that this distance is perpendicular to the flow. 
-		//			double[] midPoint = new double[2];
-		//			double[] midRange = riverParams.getMidRiverRange();
-		//			if (midRange != null && midRange.length == 2) {
-		//				String[] banks = {"Near Bank", "Far Bank"};
-		//				for (int i = 0; i < 2; i++) {
-		//					double flowR = Math.toRadians(riverParams.flowDirection);
-		//					midPoint[0] = midRange[i] * Math.cos(flowR);
-		//					midPoint[1] = midRange[i] * Math.sin(flowR);
-		//					drawMapTrigLine(g2d, origin, mapProjector, midPoint, riverParams.flowDirection, lenPixels, Color.WHITE, null);
-		//				}
-		//			}
-		//		}
+
 
 	}
 
@@ -399,6 +357,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 
 	}
 
+	@Deprecated
 	private void drawMapTrigLine(Graphics2D g2d, LatLong origin, MapRectProjector mapProj, double[] point, 
 			double angleDegrees, double lenPixels, Color colour, String title) {
 		double l = lenPixels;
@@ -502,33 +461,105 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 				arrowG.drawString("Flow direction", 0, 0);
 			}
 		}
+		if (rtSymbolOpts.drawTriggerboundaries) {
+			// draw the zones. To accommodate different zone types, they can do their own drawing. 
+			ArrayList<TriggerZone> zones = riverTriggerControl.getTriggerParams().getTriggerZones();
+			int colInd = 0;
+			for (TriggerZone aZone : zones) {
+				/*	don't use the swingDraw. At the moment, we only have a polygon region,
+				 *  So do the drawing here, and evolve it later if we find we need other shapes.  
+				 */
+				//			aZone.swingDraw(g2d, mapProjector);
+				Color col = PamColors.getInstance().getChannelColor(++colInd);
+//				drawTriggerZone(g2d, mapProjector, aZone, col);
+				drawTriggerZoneOnSonar(g, sonarPosition, rthiProj, aZone, col);
 
-		//		if (rtSymbolOpts.drawTriggerboundaries) {
-		//			/**
-		//			 * Draw the trigger lines. These will need to be translated. 
-		//			 */
-		//			boolean dt = rtSymbolOpts.showLabels;
-		//			drawTrigLine(g, sonarPosition, rthiProj, params.getIgnorePoint(), params.flowDirection, Color.CYAN, dt ? "Ignore line" : null);
-		//			drawTrigLine(g, sonarPosition, rthiProj, params.getTriggerPoint(), params.flowDirection, Color.RED, dt ? "Trigger line" : null);
-		//
-		//			// mid river lines only have a distance. Assume that this distance is perpendicular to the flow. 
-		//			double[] midPoint = new double[2];
-		//			double[] midRange = params.getMidRiverRange();
-		//			if (midRange != null && midRange.length == 2) {
-		//				String[] banks = {"Near Bank", "Far Bank"};
-		//				for (int i = 0; i < 2; i++) {
-		//					double flowR = Math.toRadians(params.flowDirection);
-		//					midPoint[0] = midRange[i] * Math.cos(flowR);
-		//					midPoint[1] = midRange[i] * Math.sin(flowR);
-		//					drawTrigLine(g, sonarPosition, rthiProj, midPoint, 90+params.flowDirection, Color.WHITE, dt ? banks[i] : null);
-		//				}
-		//			}
-		//		}
+			}
+		}
 
 	}
 
 
+	/**
+	 * Draw a trigger zone on a sonar display. note that these will need transforming 
+	 * from the global xy coordinates now used in the trigger to the sonar coordinate frame. 
+	 * @param g
+	 * @param sonarPosition
+	 * @param rthiProj
+	 * @param aZone
+	 * @param col
+	 */
+	private void drawTriggerZoneOnSonar(Graphics g, SonarPosition sonarPosition, SonarRThiProjector rthiProj,
+			TriggerZone aZone, Color col) {
+		/**
+		 * The sonar position is a rotation, then xy translation. So we need to do this
+		 * in reverse, - translate the xy, then rotate, then convert to r thi, then correct angle. 
+		 */
+		SonarsPanelParams imageParams = rthiProj.getImagePanel().getSonarsPanel().getSonarsPanelParams();
+		RiverTriggerParams params = riverTriggerControl.getTriggerParams();
+		double rotAngle  = Math.toRadians(sonarPosition.getHead());
+		
+		double[][] vertices = aZone.getVertices();
+		if (vertices == null) {
+			return;
+		}
+		double[] xv = vertices[0];
+		double[] yv = vertices[1];
+		LatLong origin = getStreamerOrigin(0, PamCalendar.getTimeInMillis());
+		//		LatLong vLL = new LatLong
+		int[] xDraw = new int[xv.length];
+		int[] yDraw = new int[yv.length];
+		
+		for (int i = 0; i < xv.length; i++) {
+			/*
+			 *  need to translate the xy coordinates into the sonar frame, then
+			 *  feed them into the sonar projector.  x and y are absolute coordinates
+			 *  so need to undo the rotation, then undo the tanslation. This can be done
+			 *  in standard cartesian, then needs flipped at last min for sonar frame. 
+			 */
+			double x = xv[i];
+			double y = yv[i];
+			x -= sonarPosition.getX();
+			y -= sonarPosition.getY();
+			double thi = Math.atan2(-x, y) + rotAngle; // correct sonar frame with x reversed
+			double r = Math.sqrt(x*x+y*y);
+			// now need to go back into xy to do the translation. 
+			x = r * -Math.sin(thi);
+			y = r * Math.cos(thi);
+			// and recalculate angle. (r hasn't changed) 
+			thi = Math.atan2(-x, y);
+			
+//			if (i == 0) {
+//				System.out.printf("%s translate %3.0f,%3.0f,%3.0f%s: %3.0f,%3.0f to %3.1f,%3.1f r %3.1fm thi %3.1f%s\n", 
+//					sonarPosition.getSonarName(),sonarPosition.getX(), sonarPosition.getY(), sonarPosition.getHead(), LatLong.deg,
+//					xv[i], yv[i], x,y, r,Math.toDegrees(thi),LatLong.deg);
+//			}
+			
+			Coordinate3d c3d = rthiProj.getCoord3d(r, thi, false);	
+			xDraw[i] = (int) Math.round(c3d.x);
+			yDraw[i] = (int) Math.round(c3d.y);
+		}
+		
+		Color newcol = new Color(col.getRed(), col.getBlue(), col.getGreen(), 255);
+		Graphics2D g2d = (Graphics2D) g;
+		g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dash, 0));
+		g2d.setColor(newcol);
+		g2d.drawPolygon(xDraw, yDraw, xDraw.length);
+		// try to find a sensible place to put a label
+		int xBL = xDraw[0];
+		int yBL = yDraw[0];
+		for (int i = 1; i < xDraw.length; i++) {
+			xBL = Math.max(xBL,  xDraw[i]);
+			yBL = Math.max(yBL,  yDraw[i]);
+		}
+		g2d.setColor(Color.white);
+		FontMetrics fm = g2d.getFontMetrics();
+		Rectangle2D lm = fm.getStringBounds(aZone.getName(), g2d);
+		g2d.drawString(aZone.getName(), (int) (xBL-lm.getWidth()), yBL);
+		
+	}
 
+	@Deprecated
 	private void drawTrigLine(Graphics g, SonarPosition sonarPosition, SonarRThiProjector rthiProj, double[] point, 
 			double angleDegrees, Color colour, String title) {
 		if (point == null || point.length != 2) {
