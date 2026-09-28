@@ -146,4 +146,13 @@ public class ZonePolygon implements RiverZone, Serializable, Cloneable{
 	    return Math.abs(area) / 2.0;
 	}
 
+	@Override
+	public double[][] getVertices() {
+		if (xPoints == null || yPoints == null) {
+			return null;
+		}
+		double[][] v = {xPoints, yPoints};
+		return v;
+	}
+
 }

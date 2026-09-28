@@ -77,4 +77,9 @@ public class TriggerZone implements Serializable, RiverZone {
 	public RiverZone getRiverZone() {
 		return riverZone;
 	}
+
+	@Override
+	public double[][] getVertices() {
+		return riverZone.getVertices();
+	}
 }

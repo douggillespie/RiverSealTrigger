@@ -44,4 +44,10 @@ public interface RiverZone {
 	 */
 	public String validate();
 	
+	/**
+	 * Get a list of vertices for drawing. 
+	 * @return 2 element array of x and y coordinates. 
+	 */
+	public double[][] getVertices();
+	
 }
