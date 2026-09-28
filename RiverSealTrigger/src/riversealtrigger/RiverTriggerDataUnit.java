@@ -9,11 +9,12 @@ import PamUtils.time.CalendarControl;
 import PamguardMVC.DataUnitBaseData;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
+import riversealtrigger.zones.ZonedDataUnit;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.track.TrackChain;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 
-public class RiverTriggerDataUnit extends PamDataUnit<PamDataUnit, PamDataUnit> implements PamDetection {
+public class RiverTriggerDataUnit extends PamDataUnit<PamDataUnit, PamDataUnit> implements PamDetection, ZonedDataUnit {
 
 	private double triggerX, triggerY;
 	private double endX, endY; // end points of trigger when it extends over time. 
@@ -184,9 +185,7 @@ public class RiverTriggerDataUnit extends PamDataUnit<PamDataUnit, PamDataUnit> 
 		return false;
 	}
 
-	/**
-	 * @return the zoneName
-	 */
+	@Override
 	public String getZoneName() {
 		return zoneName;
 	}

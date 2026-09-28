@@ -7,7 +7,7 @@ import java.util.ArrayList;
  * Primarily intended for use with the Seal River Trigger and TAST firing modules. 
  * But hope to move to PAMGUard core so it could potentially be used by other detectors
  */
-public interface ZonedData {
+public interface ZonedDataBlock {
 
 	public ArrayList<TriggerZone> getTriggerZones();
 	
