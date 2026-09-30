@@ -133,7 +133,7 @@ public class RiverTriggerDialogZ extends PamDialog implements ZoneTableListener{
 		c.gridx++;
 		topPanel.add(new JLabel(" " + LatLong.deg), c);
 		
-		zoneSelected(null);
+		zoneSelected(null, 0);
 		setDialogComponent(mainPanel);
 	}
 
@@ -211,7 +211,7 @@ public class RiverTriggerDialogZ extends PamDialog implements ZoneTableListener{
 	}
 
 	@Override
-	public void zoneSelected(TriggerZone triggerZone) {
+	public void zoneSelected(TriggerZone triggerZone, int clickCount) {
 		if (triggerZone == null) {
 			upButton.setEnabled(false);
 			dnButton.setEnabled(false);
@@ -226,7 +226,9 @@ public class RiverTriggerDialogZ extends PamDialog implements ZoneTableListener{
 		int pos = params.zonePosition(triggerZone);
 		upButton.setEnabled(pos > 0);
 		dnButton.setEnabled(pos < nZ-1);
-		
+		if (clickCount == 2) {
+			editZone();
+		}
 	}
 
 	public static RiverTriggerParams showDialog(Window parent, RiverTriggerParams riverTriggerParams) {

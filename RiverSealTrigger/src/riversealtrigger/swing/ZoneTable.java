@@ -40,6 +40,8 @@ public class ZoneTable {
 		mainPanel.add(scroller, BorderLayout.CENTER);
 
 		table.addMouseListener(new TableMouse());
+		table.setRowSelectionAllowed(false);
+		table.setCellSelectionEnabled(true);
 		new SwingTableColumnWidths("Trigger zone table view", table);
 	}
 	
@@ -103,7 +105,7 @@ public class ZoneTable {
 		public void mouseClicked(MouseEvent e) {
 			int selRow = table.getSelectedRow();
 			if (zoneTableListener != null) {
-				zoneTableListener.zoneSelected(zoneForRow(selRow));
+				zoneTableListener.zoneSelected(zoneForRow(selRow), e.getClickCount());
 			}
 		}
 		

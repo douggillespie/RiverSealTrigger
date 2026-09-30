@@ -341,6 +341,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 		}
 		Color newcol = new Color(col.getRed(), col.getBlue(), col.getGreen(), 55);
 		g2d.setColor(newcol);
+		g2d.setClip(null);
 		g2d.fillPolygon(xDraw, yDraw, xDraw.length);
 		// try to find a sensible place to put a label
 

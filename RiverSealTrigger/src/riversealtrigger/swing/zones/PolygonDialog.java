@@ -17,10 +17,11 @@ import PamView.dialog.PamGridBagContraints;
 import riversealtrigger.RiverRegionThresholds;
 import riversealtrigger.zones.RiverZone;
 import riversealtrigger.zones.TriggerZone;
+import riversealtrigger.zones.ZonePolygon;
 
 
 public class PolygonDialog extends PamDialog {
-	
+
 	private TriggerZone triggerZone;
 	private static PolygonDialog singleInstance;
 	private ZoneDialogPanel zoneDialogPanel;
@@ -32,13 +33,13 @@ public class PolygonDialog extends PamDialog {
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		JPanel topPanel = new JPanel(new GridBagLayout());
 		topPanel.setBorder(new TitledBorder("Zone options"));	
-		
+
 		JPanel zonePanel = new JPanel();
 		zoneDialogPanel = new PolygonTable(this);
 		zonePanel.add(zoneDialogPanel.getPanel());
 		mainPanel.add(BorderLayout.NORTH, topPanel);
 		mainPanel.add(BorderLayout.CENTER, zonePanel);
-		
+
 		name = new JTextField(20);
 		minLinkScore = new JTextField(5);
 		minRSize = new JTextField(5);
@@ -53,7 +54,7 @@ public class PolygonDialog extends PamDialog {
 		minTrackLength.setToolTipText("Min end-to-end track length");
 		trigOnEnd.setToolTipText("Trigger only if the track ends in this zone");
 		trigImmediate.setToolTipText("Trigger immediately if track detected in this zone");
-		
+
 		GridBagConstraints c = new PamGridBagContraints();
 		topPanel.add(new JLabel("Zone name ", JLabel.RIGHT), c);
 		c.gridx++;
@@ -88,12 +89,12 @@ public class PolygonDialog extends PamDialog {
 		topPanel.add(new JLabel(" m", JLabel.LEFT), c);
 		c.gridx = 0;
 		c.gridy++;
-		
-		
-		
+
+
+
 		setDialogComponent(mainPanel);
 	}
-	
+
 	public static TriggerZone showDialog(Window parent, TriggerZone zone) {
 		singleInstance = new PolygonDialog(parent);	
 		singleInstance.setParams(zone);
@@ -103,22 +104,30 @@ public class PolygonDialog extends PamDialog {
 
 	private void setParams(TriggerZone triggerZone) {
 		this.triggerZone = triggerZone;
+		RiverRegionThresholds regionThresholds = null;
 		if (triggerZone == null) {
 			zoneDialogPanel.setZone(null);
 		}
 		else {
 			zoneDialogPanel.setZone(triggerZone.getRiverZone());
+			regionThresholds = triggerZone.getRiverRegionThresholds();
 		}
-		if (triggerZone == null) {
-			return;
+
+		if (regionThresholds == null) {
+			regionThresholds = new RiverRegionThresholds();
 		}
-		name.setText(triggerZone.getName());
-		RiverRegionThresholds th = triggerZone.getRiverRegionThresholds();
-		trigOnEnd.setSelected(th.triggerType == RiverRegionThresholds.TRIGGER_ONEND);
-		trigImmediate.setSelected(th.triggerType == RiverRegionThresholds.TRIGGER_IMMEDIATE);
-		minLinkScore.setText(Double.valueOf(th.minLinkScore).toString());
-		minRSize.setText(Double.valueOf(th.minRSize).toString());
-		minTrackLength.setText(Double.valueOf(th.minLength).toString());
+		if (triggerZone != null) {
+			name.setText(triggerZone.getName());
+		}
+		setThresholdParams(regionThresholds);
+	}
+
+	private void setThresholdParams(RiverRegionThresholds regionThresholds) {
+		trigOnEnd.setSelected(regionThresholds.triggerType == RiverRegionThresholds.TRIGGER_ONEND);
+		trigImmediate.setSelected(regionThresholds.triggerType == RiverRegionThresholds.TRIGGER_IMMEDIATE);
+		minLinkScore.setText(Double.valueOf(regionThresholds.minLinkScore).toString());
+		minRSize.setText(Double.valueOf(regionThresholds.minRSize).toString());
+		minTrackLength.setText(Double.valueOf(regionThresholds.minLength).toString());		
 	}
 
 	@Override
@@ -166,7 +175,7 @@ public class PolygonDialog extends PamDialog {
 		catch (NumberFormatException e) {
 			return showWarning("Invalid min track length value");
 		}
-		
+
 		return true;
 	}
 
@@ -177,8 +186,8 @@ public class PolygonDialog extends PamDialog {
 
 	@Override
 	public void restoreDefaultSettings() {
-		// TODO Auto-generated method stub
-		
+		RiverRegionThresholds regionTh = new RiverRegionThresholds();
+		setThresholdParams(regionTh);
 	}
 
 }
