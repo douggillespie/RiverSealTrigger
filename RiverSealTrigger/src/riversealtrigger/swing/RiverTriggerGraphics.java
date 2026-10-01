@@ -29,6 +29,7 @@ import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
 import PamView.GeneralProjector.ParameterUnits;
 import PamView.PamColors;
+import PamView.PamColors.PamColor;
 import PamView.PamKeyItem;
 import PamView.PamSymbol;
 import PamView.PamSymbolType;
@@ -245,7 +246,12 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 			int x2 = (int) (x1 + Math.sin(flowAngR)*arrLen);
 			int y2 = (int) (y1 - Math.cos(flowAngR)*arrLen);
 			g2d.setStroke(new BasicStroke(2));
+//			g2d.setColor(PamColors.getInstance().getColor(PamColor.GRID));
+			g2d.setColor(Color.WHITE);
 			PamSymbol.drawArrow(g2d, x1, y1, x2, y2, arrLen/15);
+			Graphics2D rotatedG = (Graphics2D) g2d.create();
+			rotatedG.setTransform(AffineTransform.getRotateInstance(-Math.PI/2+flowAngR, x1, y1));
+			rotatedG.drawString("River Flow", x1, y1-2);
 		}
 
 		if (rtSymbolOpts.drawTriggerboundaries) {
