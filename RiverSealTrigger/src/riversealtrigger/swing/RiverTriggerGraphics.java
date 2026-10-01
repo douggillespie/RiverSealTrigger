@@ -505,6 +505,10 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 		SonarsPanelParams imageParams = rthiProj.getImagePanel().getSonarsPanel().getSonarsPanelParams();
 		RiverTriggerParams params = riverTriggerControl.getTriggerParams();
 		double rotAngle  = Math.toRadians(sonarPosition.getHead());
+		double flip = 1;
+		if (sonarPosition.isFlipLR()) {
+			flip = -1;
+		}
 		
 		double[][] vertices = aZone.getVertices();
 		if (vertices == null) {
@@ -532,6 +536,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 			double r = Math.sqrt(x*x+y*y);
 			// now need to go back into xy to do the translation. 
 			x = r * -Math.sin(thi);
+			x *= flip;
 			y = r * Math.cos(thi);
 			// and recalculate angle. (r hasn't changed) 
 			thi = Math.atan2(-x, y);
