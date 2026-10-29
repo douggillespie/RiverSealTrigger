@@ -536,7 +536,7 @@ public class RiverTriggerGraphics extends SonarOverlayDraw {
 			double r = Math.sqrt(x*x+y*y);
 			// now need to go back into xy to do the translation. 
 			x = r * -Math.sin(thi);
-			x *= flip;
+			x *= flip; // flip sonar image direction if it's mounted upside down
 			y = r * Math.cos(thi);
 			// and recalculate angle. (r hasn't changed) 
 			thi = Math.atan2(-x, y);

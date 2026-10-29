@@ -12,6 +12,7 @@ import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamProcess;
+import jsonStorage.JSONSQLWrapper;
 import riversealtrigger.logging.RiverTriggerLogging;
 import riversealtrigger.swing.RiverTriggerGraphics;
 import riversealtrigger.swing.RiverTriggerSymbolManager;
@@ -48,6 +49,7 @@ public class RiverTriggerProcess extends PamProcess {
 		outputData.SetLogging(new RiverTriggerLogging(outputData));
 		outputData.setOverlayDraw(new RiverTriggerGraphics(riverTriggerControl));
 		outputData.setPamSymbolManager(new RiverTriggerSymbolManager(outputData));
+		outputData.setJSONDataSource(new JSONSQLWrapper(new RiverTriggerLogging(outputData)));
 
 		this.addOutputDataBlock(outputData);
 
